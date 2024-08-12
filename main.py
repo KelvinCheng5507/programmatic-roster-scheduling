@@ -47,13 +47,7 @@ model.no_shift_on_annual_leave = Constraint(persons, rule=rule_3)
 
 # We calculate the standard deviation of everyone's shifts.
 shift_counts = [sum(model.shifts[person, date] for date in dates) for person in persons]
-
-# Mean without auxiliary variables. (Bad approach)
 mean_num_shifts = sum(shift_counts) / len(shift_counts)
-
-# Mean with auxiliary variables. (Good approach)
-# mean_num_shifts = model.mean_num_shifts = Var(within=NonNegativeReals)
-# model.auxiliary_constraint = Constraint(expr=mean_num_shifts == sum(shift_counts) / len(shift_counts))
 
 standard_deviation_of_shift_counts = sum((i-mean_num_shifts)**2 for i in shift_counts) / (len(shift_counts) - 1)
 
