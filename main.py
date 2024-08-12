@@ -1,5 +1,6 @@
 from pyomo.environ import *
 import pandas as pd
+from datetime import datetime
 import xlsxwriter
 
 # Your parameters
@@ -66,11 +67,11 @@ known_best_objective_value = None
 def callback_function(_model):
 	global known_best_objective_value, model
 	if known_best_objective_value == None or value(_model.objective) < known_best_objective_value:
-		
+
 		if known_best_objective_value == None:
-			print("At least one solution has been found. You may terminate anytime with Ctrl + C, or wait until the solver generates an even better solution")
+			print(f"At least one solution has been found (objective value: {value(_model.objective)}). You may terminate anytime with Ctrl + C, or wait until the solver generates an even better solution")
 		else:
-			print("Better solution found.") 
+			print(f"Better solution found. (objective value: {value(_model.objective)})") 
 
 		known_best_objective_value = value(_model.objective)
 		for key in model.shifts:
@@ -87,19 +88,25 @@ except KeyboardInterrupt:
 # Output to excel
 
 def set_up_timetable(model, writer):
-	dates = [i.strftime('%Y-%m-%d') for i in dates]
+	global dates
+	formatted_dates = [date.strftime('%Y-%m-%d') for date in dates]
+	weekdays = [get_weekday_from_date(date) for date in formatted_dates]
 
 	persons_assigned = []
 	for date in dates:
 		persons_assigned_on_date = [person for person in persons if model.shifts[person, date].value == 1]
 		persons_assigned.append(', '.join(persons_assigned_on_date))
 
-	columns = ["Dates", "Weekday", "Call"]
-	df = pd.DataFrame(list(zip(dates, persons_assigned)))
+	columns = ["Dates", "Weekday",  "Call"]
+	df = pd.DataFrame(list(zip(formatted_dates, weekdays, persons_assigned)), columns=columns)
 	print(df)
 	df.to_excel(writer, sheet_name='Timetable', index=False)
 
+def get_weekday_from_date(date):
+	date_obj = datetime.strptime(date, '%Y-%m-%d')
+	return date_obj.strftime('%A')
+
 writer = pd.ExcelWriter('output.xlsx', engine='xlsxwriter')
-
-
+set_up_timetable(model, writer)
+writer.close()
 
