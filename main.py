@@ -1,7 +1,6 @@
 from pyomo.environ import *
 import pandas as pd
 from datetime import datetime
-import xlsxwriter
 
 # Your parameters
 persons = ["John", "Peter", "Mary", "Josh"]
@@ -49,9 +48,9 @@ model.no_shift_on_annual_leave = Constraint(persons, rule=rule_3)
 shift_counts = [sum(model.shifts[person, date] for date in dates) for person in persons]
 mean_num_shifts = sum(shift_counts) / len(shift_counts)
 
-standard_deviation_of_shift_counts = sum((i-mean_num_shifts)**2 for i in shift_counts) / (len(shift_counts) - 1)
+variance_of_shift_counts = sum((i-mean_num_shifts)**2 for i in shift_counts) / (len(shift_counts) - 1)
 
-model.objective = Objective(expr=standard_deviation_of_shift_counts)
+model.objective = Objective(expr=variance_of_shift_counts)
 
 
 # Solve
