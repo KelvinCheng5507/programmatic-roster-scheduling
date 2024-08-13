@@ -55,18 +55,18 @@ model.objective = Objective(expr=variance_of_shift_counts)
 
 # Solve
 
-known_best_objective_value = None
+incumbent = None
 
 def callback_function(_model):
-	global known_best_objective_value, model
-	if known_best_objective_value == None or value(_model.objective) < known_best_objective_value:
+	global incumbent, model
+	if incumbent == None or value(_model.objective) < incumbent:
 
-		if known_best_objective_value == None:
+		if incumbent == None:
 			print(f"At least one solution has been found (objective value: {value(_model.objective)}). You may terminate anytime with Ctrl + C, or wait until the solver generates an even better solution")
 		else:
 			print(f"Better solution found. (objective value: {value(_model.objective)})") 
 
-		known_best_objective_value = value(_model.objective)
+		incumbent = value(_model.objective)
 		for key in model.shifts:
 			model.shifts[key] = _model.shifts[key]
 	
