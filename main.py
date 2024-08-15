@@ -4,14 +4,14 @@ from datetime import datetime
 
 # Your parameters
 persons = ["John", "Peter", "Mary", "Josh"]
-dates = pd.date_range('2024-01-01', '2024-01-31')
+dates = pd.date_range('2024-02-01', '2024-02-28')
 
 # Annual Leaves
 AL = {
-	'John': ['2024-01-01', '2024-01-02', '2024-01-03'],
-	"Peter": ['2024-01-04',  '2024-01-11'],
-	"Mary": ['2024-01-28', '2024-01-29', '2024-01-30'],
-	"Josh": ['2024-01-15']
+	'John': ['2024-02-01', '2024-02-02', '2024-02-03'],
+	"Peter": ['2024-02-08', '2024-02-11'],
+	"Mary": ['2024-02-26', '2024-02-27', '2024-02-28'],
+	"Josh": ['2024-02-15']
 }
 
 # We declare a pyomo model here.
@@ -55,31 +55,11 @@ model.objective = Objective(expr=variance_of_shift_counts)
 
 # Solve
 
-incumbent = None
+SolverFactory('mindtpy').solve(model, tee=True)
 
-def callback_function(_model):
-	global incumbent, model
-	if incumbent == None or value(_model.objective) < incumbent:
-
-		if incumbent == None:
-			print(f"At least one solution has been found (objective value: {value(_model.objective)}). You may terminate anytime with Ctrl + C, or wait until the solver generates an even better solution")
-		else:
-			print(f"Better solution found. (objective value: {value(_model.objective)})") 
-
-		incumbent = value(_model.objective)
-		for key in model.shifts:
-			model.shifts[key] = _model.shifts[key]
-	
-
-
-try:
-	SolverFactory('mindtpy').solve(model, tee=True, call_after_main_solve=callback_function)
-except KeyboardInterrupt:
-	pass
 
 
 # Output to excel
-
 def set_up_timetable(model, writer):
 	global dates
 	formatted_dates = [date.strftime('%Y-%m-%d') for date in dates]
